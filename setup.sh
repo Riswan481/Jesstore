@@ -2,117 +2,160 @@
 dateFromServer=$(curl -v --insecure --silent https://google.com/ 2>&1 | grep Date | sed -e 's/< Date: //')
 biji=`date +"%Y-%m-%d" -d "$dateFromServer"`
 clear
+
+# Definisi warna untuk output
 red='\e[1;31m'
 green='\e[0;32m'
 yell='\e[1;33m'
 tyblue='\e[1;36m'
 NC='\e[0m'
+
+# Fungsi untuk menampilkan teks berwarna
 purple() { echo -e "\\033[35;1m${*}\\033[0m"; }
 tyblue() { echo -e "\\033[36;1m${*}\\033[0m"; }
 yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
 green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
-# domain random
+
+# Memulai instalasi
 CDN="https://raw.githubusercontent.com/Riswan481/Jesstore/main/ssh"
 cd /root
+
+# Mengecek apakah skrip dijalankan sebagai root
 if [ "${EUID}" -ne 0 ]; then
-echo "You need to run this script as root"
-exit 1
+    echo -e "[ ${red}ERROR${NC} ] Anda harus menjalankan skrip ini sebagai pengguna root."
+    exit 1
 fi
+
+# Mengecek apakah server menggunakan OpenVZ (yang tidak didukung)
 if [ "$(systemd-detect-virt)" == "openvz" ]; then
-echo "OpenVZ is not supported"
-exit 1
+    echo -e "[ ${red}ERROR${NC} ] Skrip ini tidak mendukung sistem berbasis OpenVZ."
+    exit 1
 fi
+
+# Mengatur IP dan hostname
 localip=$(hostname -I | cut -d\  -f1)
 hst=( `hostname` )
 dart=$(cat /etc/hosts | grep -w `hostname` | awk '{print $2}')
 if [[ "$hst" != "$dart" ]]; then
-echo "$localip $(hostname)" >> /etc/hosts
+    echo "$localip $(hostname)" >> /etc/hosts
 fi
+
+# Membuat direktori dan file yang diperlukan
 mkdir -p /etc/xray
 mkdir -p /etc/v2ray
 touch /etc/xray/domain
 touch /etc/v2ray/domain
 touch /etc/xray/scdomain
 touch /etc/v2ray/scdomain
-echo -e "[ ${tyblue}NOTES${NC} ] Sebelum menginstall.. "
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] Saya perlu memeriksa headers Anda Dulu.."
+
+# Menampilkan informasi sebelum instalasi
+echo -e "[ ${tyblue}PENTING${NC} ] Sebelum memulai instalasi, mohon baca informasi berikut dengan seksama:"
 sleep 2
-echo -e "[ ${green}INFO${NC} ] Memeriksa Haeders"
+echo -e "[ ${tyblue}PENTING${NC} ] 1. Pastikan Anda menjalankan skrip ini dengan akses root."
+echo -e "[ ${tyblue}PENTING${NC} ] 2. Skrip ini akan memeriksa dan menginstal paket yang dibutuhkan untuk kelancaran instalasi."
+echo -e "[ ${tyblue}PENTING${NC} ] 3. Beberapa pengaturan sistem, seperti zona waktu dan IPv6, akan disesuaikan."
+echo -e "[ ${tyblue}PENTING${NC} ] 4. Skrip ini tidak kompatibel dengan sistem berbasis OpenVZ."
+echo -e "[ ${tyblue}PENTING${NC} ] 5. Pastikan koneksi internet Anda stabil selama proses instalasi."
+sleep 2
+echo -e "[ ${green}INFO${NC} ] Jika Anda sudah membaca dan memahami informasi di atas, tekan Enter untuk melanjutkan."
+read
+
+# Memulai proses instalasi
+echo -e "[ ${green}INFO${NC} ] Memulai proses instalasi, harap tunggu..."
+sleep 2
+echo -e "[ ${tyblue}PENTING${NC} ] Memeriksa paket kernel yang diperlukan..."
+sleep 2
+echo -e "[ ${green}INFO${NC} ] Mengecek keberadaan paket kernel..."
 sleep 1
 totet=`uname -r`
 REQUIRED_PKG="linux-headers-$totet"
 PKG_OK=$(dpkg-query -W --showformat='${Status}\n' $REQUIRED_PKG|grep "install ok installed")
-echo Checking for $REQUIRED_PKG: $PKG_OK
+echo "Mengecek paket $REQUIRED_PKG: $PKG_OK"
 if [ "" = "$PKG_OK" ]; then
-sleep 2
-echo -e "[ ${yell}WARNING${NC} ] Coba lanjutkan untuk menginstall ...."
-echo "No $REQUIRED_PKG. Setting up $REQUIRED_PKG."
-apt-get --yes install $REQUIRED_PKG
-sleep 1
-echo ""
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] If error you need.. to do this"
-sleep 1
-echo ""
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] 1. apt update -y"
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] 2. apt upgrade -y"
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] 3. apt dist-upgrade -y"
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] 4. reboot"
-sleep 1
-echo ""
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] After rebooting"
-sleep 1
-echo -e "[ ${tyblue}NOTES${NC} ] Then run this script again"
-echo -e "[ ${tyblue}NOTES${NC} ] if you understand then tap enter now"
-read
+    sleep 2
+    echo -e "[ ${yell}PERINGATAN${NC} ] Paket kernel yang diperlukan tidak ditemukan. Melanjutkan instalasi..."
+    echo "Menginstal paket $REQUIRED_PKG."
+    apt-get --yes install $REQUIRED_PKG
+    sleep 1
+    echo ""
+    sleep 1
+    echo -e "[ ${tyblue}PENTING${NC} ] Jika Anda mengalami kesalahan, coba langkah-langkah berikut:"
+    sleep 1
+    echo -e "[ ${tyblue}PENTING${NC} ] 1. Jalankan perintah: apt update -y"
+    sleep 1
+    echo -e "[ ${tyblue}PENTING${NC} ] 2. Jalankan perintah: apt upgrade -y"
+    sleep 1
+    echo -e "[ ${tyblue}PENTING${NC} ] 3. Jalankan perintah: apt dist-upgrade -y"
+    sleep 1
+    echo -e "[ ${tyblue}PENTING${NC} ] 4. Lakukan reboot pada server Anda."
+    sleep 1
+    echo ""
+    sleep 1
+    echo -e "[ ${tyblue}PENTING${NC} ] Setelah reboot, jalankan kembali skrip ini."
+    echo -e "[ ${tyblue}PENTING${NC} ] Jika Anda sudah memahami, tekan Enter untuk melanjutkan."
+    read
 else
-echo -e "[ ${green}INFO${NC} ] Oke installed"
+    echo -e "[ ${green}INFO${NC} ] Paket kernel sudah terpasang."
 fi
+
+# Memastikan bahwa paket sudah terinstal dengan benar
 ttet=`uname -r`
 ReqPKG="linux-headers-$ttet"
 if ! dpkg -s $ReqPKG  >/dev/null 2>&1; then
-rm /root/setup.sh >/dev/null 2>&1
-exit
+    rm /root/setup.sh >/dev/null 2>&1
+    exit
 else
-clear
+    clear
 fi
+
+# Fungsi untuk menghitung waktu instalasi
 secs_to_human() {
-echo "Installation time : $(( ${1} / 3600 )) hours $(( (${1} / 60) % 60 )) minute's $(( ${1} % 60 )) seconds"
+    echo "Waktu instalasi: $(( ${1} / 3600 )) jam $(( (${1} / 60) % 60 )) menit $(( ${1} % 60 )) detik"
 }
+
+# Menyimpan waktu mulai
 start=$(date +%s)
+
+# Mengatur zona waktu
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
+
+# Mengatur konfigurasi untuk pengguna
 coreselect=''
 cat> /root/.profile << END
 if [ "$BASH" ]; then
-if [ -f ~/.bashrc ]; then
-. ~/.bashrc
-fi
+    if [ -f ~/.bashrc ]; then
+        . ~/.bashrc
+    fi
 fi
 mesg n || true
 clear
 END
 chmod 644 /root/.profile
-echo -e "[ ${green}INFO${NC} ] mpersiapkan file instalasi"
+
+# Menginstal paket yang diperlukan
+echo -e "[ ${green}INFO${NC} ] Menyiapkan berkas instalasi..."
 apt install git curl -y >/dev/null 2>&1
 apt install python -y >/dev/null 2>&1
-echo -e "[ ${green}INFO${NC} ] Ok bagus...berekas instalasi sudah siap"
+
+# Menampilkan informasi setelah instalasi selesai
+echo -e "[ ${green}INFO${NC} ] Semua berkas instalasi sudah siap."
 echo -e "$green                                                                                         $NC"
 echo -e "$BIWhite» TERIMAKASIH TELAH MEMAKAI AUTOSCRIPT PREMIUM JESSTUNNEL STORE$NC"
 sleep 5
-echo -ne "[ ${green}INFO${NC} ] Check permission : "
+
+# Memeriksa izin dan memulai proses berikutnya
+echo -ne "[ ${green}INFO${NC} ] Memeriksa izin: "
 mkdir -p /var/lib/SIJA >/dev/null 2>&1
 echo "IP=" >> /var/lib/SIJA/ipvps.conf
 echo ""
-wget -q https://raw.githubusercontent.com/Riswan481/Jesstore/main/tools.sh;chmod +x tools.sh;./tools.sh
+
+# Mengunduh dan menjalankan skrip tambahan
+wget -q https://raw.githubusercontent.com/Riswan481/Jesstore/main/tools.sh
+chmod +x tools.sh
+./tools.sh
 rm tools.sh
 clear
 echo " "
