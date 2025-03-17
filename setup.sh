@@ -6,33 +6,40 @@ clear
 # Definisi warna untuk output
 red='\e[1;31m'
 green='\e[0;32m'
-yell='\e[1;33m'
+yell='\e[1;93m'  # Updated to bright yellow
 tyblue='\e[1;36m'
 NC='\e[0m'
 
 # Fungsi untuk menampilkan teks berwarna
 purple() { echo -e "\\033[35;1m${*}\\033[0m"; }
 tyblue() { echo -e "\\033[36;1m${*}\\033[0m"; }
-yellow() { echo -e "\\033[33;1m${*}\\033[0m"; }
+yellow() { echo -e "\\033[93;1m${*}\\033[0m"; }  # Updated to bright yellow
 green() { echo -e "\\033[32;1m${*}\\033[0m"; }
 red() { echo -e "\\033[31;1m${*}\\033[0m"; }
 
+# ================================
 # Memulai instalasi
 CDN="https://raw.githubusercontent.com/Riswan481/Jesstore/main/ssh"
 cd /root
+echo "=================================="
 
+# ================================
 # Mengecek apakah skrip dijalankan sebagai root
 if [ "${EUID}" -ne 0 ]; then
     echo -e "[ ${red}ERROR${NC} ] Anda harus menjalankan skrip ini sebagai pengguna root."
     exit 1
 fi
+echo "=================================="
 
+# ================================
 # Mengecek apakah server menggunakan OpenVZ (yang tidak didukung)
 if [ "$(systemd-detect-virt)" == "openvz" ]; then
     echo -e "[ ${red}ERROR${NC} ] Skrip ini tidak mendukung sistem berbasis OpenVZ."
     exit 1
 fi
+echo "=================================="
 
+# ================================
 # Mengatur IP dan hostname
 localip=$(hostname -I | cut -d\  -f1)
 hst=( `hostname` )
@@ -40,7 +47,9 @@ dart=$(cat /etc/hosts | grep -w `hostname` | awk '{print $2}')
 if [[ "$hst" != "$dart" ]]; then
     echo "$localip $(hostname)" >> /etc/hosts
 fi
+echo "=================================="
 
+# ================================
 # Membuat direktori dan file yang diperlukan
 mkdir -p /etc/xray
 mkdir -p /etc/v2ray
@@ -48,7 +57,9 @@ touch /etc/xray/domain
 touch /etc/v2ray/domain
 touch /etc/xray/scdomain
 touch /etc/v2ray/scdomain
+echo "=================================="
 
+# ================================
 # Menampilkan informasi sebelum instalasi
 echo -e "[ ${tyblue}PENTING${NC} ] Sebelum memulai instalasi, mohon baca informasi berikut dengan seksama:"
 sleep 2
@@ -60,7 +71,9 @@ echo -e "[ ${tyblue}PENTING${NC} ] 5. Pastikan koneksi internet Anda stabil sela
 sleep 2
 echo -e "[ ${green}INFO${NC} ] Jika Anda sudah membaca dan memahami informasi di atas, tekan Enter untuk melanjutkan."
 read
+echo "=================================="
 
+# ================================
 # Memulai proses instalasi
 echo -e "[ ${green}INFO${NC} ] Memulai proses instalasi, harap tunggu..."
 sleep 2
@@ -98,7 +111,9 @@ if [ "" = "$PKG_OK" ]; then
 else
     echo -e "[ ${green}INFO${NC} ] Paket kernel sudah terpasang."
 fi
+echo "=================================="
 
+# ================================
 # Memastikan bahwa paket sudah terinstal dengan benar
 ttet=`uname -r`
 ReqPKG="linux-headers-$ttet"
@@ -108,20 +123,26 @@ if ! dpkg -s $ReqPKG  >/dev/null 2>&1; then
 else
     clear
 fi
+echo "=================================="
 
+# ================================
 # Fungsi untuk menghitung waktu instalasi
 secs_to_human() {
     echo "Waktu instalasi: $(( ${1} / 3600 )) jam $(( (${1} / 60) % 60 )) menit $(( ${1} % 60 )) detik"
 }
 
+# ================================
 # Menyimpan waktu mulai
 start=$(date +%s)
 
+# ================================
 # Mengatur zona waktu
 ln -fs /usr/share/zoneinfo/Asia/Jakarta /etc/localtime
 sysctl -w net.ipv6.conf.all.disable_ipv6=1 >/dev/null 2>&1
 sysctl -w net.ipv6.conf.default.disable_ipv6=1 >/dev/null 2>&1
+echo "=================================="
 
+# ================================
 # Mengatur konfigurasi untuk pengguna
 coreselect=''
 cat> /root/.profile << END
@@ -134,29 +155,38 @@ mesg n || true
 clear
 END
 chmod 644 /root/.profile
+echo "=================================="
 
+# ================================
 # Menginstal paket yang diperlukan
 echo -e "[ ${green}INFO${NC} ] Menyiapkan berkas instalasi..."
 apt install git curl -y >/dev/null 2>&1
 apt install python -y >/dev/null 2>&1
+echo "=================================="
 
+# ================================
 # Menampilkan informasi setelah instalasi selesai
 echo -e "[ ${green}INFO${NC} ] Semua berkas instalasi sudah siap."
 echo -e "$green                                                                                         $NC"
 echo -e "$BIWhite» TERIMAKASIH TELAH MEMAKAI AUTOSCRIPT PREMIUM JESSTUNNEL STORE$NC"
 sleep 5
+echo "=================================="
 
+# ================================
 # Memeriksa izin dan memulai proses berikutnya
 echo -ne "[ ${green}INFO${NC} ] Memeriksa izin: "
 mkdir -p /var/lib/SIJA >/dev/null 2>&1
 echo "IP=" >> /var/lib/SIJA/ipvps.conf
 echo ""
+echo "=================================="
 
+# ================================
 # Mengunduh dan menjalankan skrip tambahan
 wget -q https://raw.githubusercontent.com/Riswan481/Jesstore/main/tools.sh
 chmod +x tools.sh
 ./tools.sh
 rm tools.sh
+echo "=================================="
 clear
 echo " "
 clear
